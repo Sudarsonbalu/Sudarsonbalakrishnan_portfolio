@@ -56,6 +56,12 @@ export const metadata: Metadata = {
     icon: '/images/logo.png',
     apple: '/images/logo.png',
   },
+  verification: {
+    google: 'google14a3ff345c9b5db9',
+    other: {
+      'google-site-verification': ['google14a3ff345c9b5db9', 'google14a3ff345c9b5db9.html'],
+    },
+  },
 }
 
 export const viewport: Viewport = {
@@ -76,6 +82,8 @@ export default function RootLayout({
       className={`${syne.variable} ${mono.variable} ${manrope.variable}`}
     >
       <head>
+        <meta name="google-site-verification" content="google14a3ff345c9b5db9" />
+        <meta name="google-site-verification" content="google14a3ff345c9b5db9.html" />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){
