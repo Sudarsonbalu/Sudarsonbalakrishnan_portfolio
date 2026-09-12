@@ -396,7 +396,8 @@ function ProjectCard({
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 10,
+              flexWrap: 'wrap',
+              gap: 8,
               paddingTop: 16,
               marginTop: 'auto',
               borderTop: '1px solid rgba(255,255,255,0.05)',
@@ -408,7 +409,7 @@ function ProjectCard({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="editorial-live-demo-btn"
-                style={{ flex: 1 }}
+                style={{ flex: '1 1 130px', minWidth: 120 }}
               >
                 <span>LIVE DEMO</span>
                 <span className="arrow-icon">↗</span>
@@ -417,7 +418,7 @@ function ProjectCard({
               <Link
                 href={`/projects/${project.slug}`}
                 className="editorial-live-demo-btn"
-                style={{ flex: 1 }}
+                style={{ flex: '1 1 130px', minWidth: 120 }}
               >
                 <span>VIEW CASE STUDY</span>
                 <span className="arrow-icon">→</span>
@@ -427,6 +428,7 @@ function ProjectCard({
             <Link
               href={`/projects/${project.slug}`}
               style={{
+                flex: '1 1 110px',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',

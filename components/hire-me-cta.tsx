@@ -160,7 +160,7 @@ export function HireMeCta() {
           }}
         >
           <h2
-            className="font-display font-black text-6xl sm:text-8xl md:text-9xl lg:text-[10.5rem] xl:text-[12rem] 2xl:text-[13rem] uppercase tracking-tight leading-[0.88] transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]"
+            className="font-display font-black text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-[10.5rem] xl:text-[12rem] 2xl:text-[13rem] uppercase tracking-tight leading-[0.88] transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] whitespace-nowrap"
             style={{
               transform: inView || reducedMotion ? 'translateY(0)' : 'translateY(40%)',
             }}

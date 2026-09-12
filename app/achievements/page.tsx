@@ -143,7 +143,7 @@ export default function AchievementsPage() {
         </div>
 
         <h1
-          className="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold uppercase tracking-tight text-white mb-6 leading-[0.92] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          className="font-display text-3xl xs:text-4xl sm:text-6xl lg:text-7xl font-extrabold uppercase tracking-tight text-white mb-6 leading-[0.92] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
           style={{
             opacity: mounted ? 1 : 0,
             transform: mounted || reducedMotion ? 'translateY(0)' : 'translateY(20px)',
@@ -190,7 +190,7 @@ export default function AchievementsPage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-6 sm:gap-8 text-neutral-400">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6 md:gap-8 text-neutral-400">
           <div className="flex items-baseline gap-2">
             <span>PATENTS:</span> <span className="text-white font-bold font-display text-base">01</span>
           </div>

@@ -18,6 +18,21 @@ export default function Navigation() {
     setMenuOpen(false)
   }, [pathname])
 
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      if (menuOpen) {
+        document.body.style.overflow = 'hidden'
+      } else {
+        document.body.style.overflow = ''
+      }
+    }
+    return () => {
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = ''
+      }
+    }
+  }, [menuOpen])
+
   const playSound = (freq = 440, dur = 0.05) => {
     if (!soundEnabled || typeof window === 'undefined') return
     try {
@@ -83,7 +98,7 @@ export default function Navigation() {
         </Link>
 
         {/* Desktop Navigation Links with animated indicators */}
-        <nav className="hidden md:flex items-center gap-8 lg:gap-10 font-mono text-xs tracking-[0.14em]">
+        <nav className="hidden md:flex items-center gap-4 lg:gap-8 xl:gap-10 font-mono text-xs tracking-[0.14em]">
           {navLinks.map((link) => {
             const active = isActive(link.href)
             return (
@@ -167,7 +182,7 @@ export default function Navigation() {
 
       {/* Mobile Drawer with Staggered Link Reveals */}
       <div
-        className={`fixed inset-0 z-40 bg-[#07080a]/98 backdrop-blur-2xl flex flex-col justify-between px-8 pt-28 pb-12 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:hidden ${
+        className={`fixed inset-0 z-40 bg-[#07080a]/98 backdrop-blur-2xl flex flex-col justify-between px-6 sm:px-8 pt-24 sm:pt-28 pb-10 sm:pb-12 overflow-y-auto transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:hidden ${
           menuOpen ? 'translate-y-0 opacity-100 pointer-events-auto' : '-translate-y-full opacity-0 pointer-events-none'
         }`}
       >

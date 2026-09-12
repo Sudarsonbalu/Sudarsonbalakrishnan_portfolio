@@ -216,7 +216,7 @@ export default function AboutPage() {
               VSB College of Engineering Technical Campus
             </div>
           </div>
-          <div className="flex items-center gap-6 font-mono text-xs text-neutral-400">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 font-mono text-xs text-neutral-400">
             <div>
               SCORE: <span className="text-[#ff1e38] font-bold">8.45 / 10 GPA</span>
             </div>
@@ -228,7 +228,7 @@ export default function AboutPage() {
 
         {/* Minimal Geometric Data Bar Graphic */}
         <div className="space-y-3 font-mono text-xs">
-          <div className="flex justify-between text-neutral-400 text-[11px]">
+          <div className="flex flex-col sm:flex-row sm:justify-between text-neutral-400 text-[11px] gap-1">
             <span className="flex items-center gap-2">
               <span className="text-[#ff1e38]">●</span>
               <span>Degree Progression (2023 – 2027)</span>
@@ -391,7 +391,7 @@ export default function AboutPage() {
                   </div>
                   {/* Description */}
                   <p
-                    className="font-sans text-sm leading-relaxed font-light text-neutral-400 max-w-xs"
+                    className="font-sans text-sm leading-relaxed font-light text-neutral-400 max-w-full sm:max-w-md lg:max-w-xs"
                     style={{
                       opacity:    revealed ? 0.65 : 0,
                       transform:  revealed ? 'translateY(0)' : 'translateY(8px)',

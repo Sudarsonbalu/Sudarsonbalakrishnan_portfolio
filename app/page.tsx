@@ -218,7 +218,7 @@ export default function HomePage() {
             </div>
 
             {/* Confident Typographic Name with Staggered Entrance */}
-            <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold uppercase tracking-tight text-white leading-[0.92] mb-6">
+            <h1 className="font-display text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold uppercase tracking-tight text-white leading-[0.92] mb-6">
               <span
                 className="block transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[var(--theme-color)] transition-colors cursor-default"
                 style={{
@@ -258,7 +258,7 @@ export default function HomePage() {
 
             {/* Action Buttons */}
             <div
-              className="flex flex-wrap items-center gap-4 mb-12 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-12 w-full sm:w-auto transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
               style={{
                 opacity: heroMounted ? 1 : 0,
                 transform: heroMounted || reducedMotion ? 'translateY(0)' : 'translateY(20px)',
@@ -267,7 +267,7 @@ export default function HomePage() {
             >
               <Link
                 href="/projects"
-                className="px-8 py-4 rounded-full text-black font-mono font-bold text-xs tracking-widest uppercase transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] hover:bg-white"
+                className="w-full sm:w-auto text-center px-8 py-4 rounded-full text-black font-mono font-bold text-xs tracking-widest uppercase transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] hover:bg-white"
                 style={{
                   backgroundColor: 'var(--theme-color, #ff1e38)',
                   boxShadow: '0 0 25px var(--theme-glow, rgba(255,30,56,0.35))',
@@ -279,7 +279,7 @@ export default function HomePage() {
 
               <Link
                 href="/contact"
-                className="px-8 py-4 rounded-full bg-transparent border border-white/20 hover:border-white text-white font-mono text-xs tracking-widest uppercase transition-all duration-300 hover:bg-white/[0.04]"
+                className="w-full sm:w-auto text-center px-8 py-4 rounded-full bg-transparent border border-white/20 hover:border-white text-white font-mono text-xs tracking-widest uppercase transition-all duration-300 hover:bg-white/[0.04]"
                 data-cursor="link"
               >
                 GET IN TOUCH
