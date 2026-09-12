@@ -151,16 +151,16 @@ export function HireMeCta() {
           </span>
         </div>
 
-        {/* 2. MAIN HEADLINE: HIRE ME (Dominant Element) */}
+        {/* 2. MAIN HEADLINE: HIRE ME */}
         <div
-          className="overflow-hidden mb-8 sm:mb-12 w-full flex justify-center"
+          className="overflow-hidden mb-6 sm:mb-8 w-full flex justify-center"
           style={{
             clipPath: inView || reducedMotion ? 'inset(0% 0% 0% 0%)' : 'inset(100% 0% 0% 0%)',
             transition: 'clip-path 0.9s cubic-bezier(0.16, 1, 0.3, 1) 200ms',
           }}
         >
           <h2
-            className="font-display font-black text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-[10.5rem] xl:text-[12rem] 2xl:text-[13rem] uppercase tracking-tight leading-[0.88] transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] whitespace-nowrap"
+            className="font-display font-black text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl uppercase tracking-tight leading-tight transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] whitespace-nowrap"
             style={{
               transform: inView || reducedMotion ? 'translateY(0)' : 'translateY(40%)',
             }}
@@ -179,7 +179,7 @@ export function HireMeCta() {
 
         {/* Supporting Brief Subtitle */}
         <p
-          className="font-sans text-neutral-400 font-light text-base sm:text-lg lg:text-xl max-w-2xl mx-auto mb-12 sm:mb-14 leading-relaxed transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          className="font-sans text-neutral-400 font-light text-sm sm:text-base lg:text-lg max-w-xl mx-auto mb-10 sm:mb-12 leading-relaxed transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
           style={{
             opacity: inView ? 1 : 0,
             transform: inView || reducedMotion ? 'translateY(0)' : 'translateY(16px)',
