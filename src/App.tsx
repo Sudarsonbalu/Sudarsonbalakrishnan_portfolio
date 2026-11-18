@@ -6,6 +6,7 @@ import { Projects } from './components/Projects';
 import { About } from './components/About';
 import { Achievements } from './components/Achievements';
 import { Skills } from './components/Skills';
+import { Resume } from './components/Resume';
 import { Contact } from './components/Contact';
 import { Footer } from './components/Footer';
 import { VideoModal } from './components/VideoModal';
@@ -83,6 +84,7 @@ export function App() {
         <About />
         <Achievements />
         <Skills />
+        <Resume />
         <Contact />
       </main>
 

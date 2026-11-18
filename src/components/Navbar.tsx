@@ -35,8 +35,8 @@ export const Navbar: React.FC = () => {
           />
         </a>
 
-        <div className="hidden md:flex items-center gap-8">
-          {['Projects', 'About', 'Achievements', 'Skills', 'Contact'].map((item) => (
+        <div className="hidden md:flex items-center gap-6 lg:gap-8">
+          {['Projects', 'About', 'Achievements', 'Skills', 'Resume', 'Contact'].map((item) => (
             <a
               key={item}
               href={`#${item.toLowerCase()}`}
