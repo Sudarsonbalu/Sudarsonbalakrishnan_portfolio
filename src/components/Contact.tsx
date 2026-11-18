@@ -3,28 +3,55 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { VenomButton } from './VenomButton';
 import { SITE, WHATSAPP_URL } from '../data/portfolioData';
-import { Mail, Phone } from 'lucide-react';
+import { Mail, Phone, CheckCircle2, AlertCircle, Loader2, Send } from 'lucide-react';
+import emailjs from '@emailjs/browser';
 
 gsap.registerPlugin(ScrollTrigger);
+
+interface FormData {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+interface FormErrors {
+  name?: string;
+  email?: string;
+  subject?: string;
+  message?: string;
+}
+
+type SubmissionStatus = 'idle' | 'sending' | 'success' | 'error';
 
 export const Contact: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const [submitted, setSubmitted] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+  });
+
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [status, setStatus] = useState<SubmissionStatus>('idle');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
       // Entrance timeline
-      gsap.timeline({
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top 80%',
-          toggleActions: 'play none none reverse',
-        },
-      })
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top 80%',
+            toggleActions: 'play none none reverse',
+          },
+        })
         .fromTo(titleRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' })
         .fromTo(cardRef.current, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: 'back.out(1.4)' }, '-=0.3');
     }, sectionRef);
@@ -32,23 +59,109 @@ export const Contact: React.FC = () => {
     return () => ctx.revert();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Validation
+  const validate = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (!formData.name.trim() || formData.name.trim().length < 2) {
+      newErrors.name = 'Please enter your name (at least 2 characters).';
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim() || !emailRegex.test(formData.email.trim())) {
+      newErrors.email = 'Please enter a valid email address.';
+    }
+
+    if (!formData.subject.trim() || formData.subject.trim().length < 3) {
+      newErrors.subject = 'Please enter a subject (at least 3 characters).';
+    }
+
+    if (!formData.message.trim() || formData.message.trim().length < 10) {
+      newErrors.message = 'Please provide a message with at least 10 characters.';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleInputChange = (field: keyof FormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear field-specific error as user types
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+    if (status === 'error') {
+      setStatus('idle');
+      setErrorMessage(null);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    // Open user's mail client with the message pre-filled
-    const mailto = `mailto:${SITE.email}?subject=${encodeURIComponent(`Project Inquiry from ${formData.name}`)}&body=${encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`)}`;
-    window.location.href = mailto;
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({ name: '', email: '', message: '' });
-    }, 5000);
+
+    // Prevent duplicate submissions
+    if (isSubmitting) return;
+
+    if (!validate()) {
+      return;
+    }
+
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+    if (!serviceId || !templateId || !publicKey) {
+      setStatus('error');
+      setErrorMessage(
+        'EmailJS environment variables are missing. Please add VITE_EMAILJS_SERVICE_ID, VITE_EMAILJS_TEMPLATE_ID, and VITE_EMAILJS_PUBLIC_KEY.'
+      );
+      return;
+    }
+
+    setIsSubmitting(true);
+    setStatus('sending');
+    setErrorMessage(null);
+
+    try {
+      const templateParams = {
+        from_name: formData.name.trim(),
+        from_email: formData.email.trim(),
+        user_email: formData.email.trim(),
+        reply_to: formData.email.trim(),
+        subject: formData.subject.trim(),
+        message: formData.message.trim(),
+        to_name: SITE.name,
+        to_email: SITE.email,
+      };
+
+      const response = await emailjs.send(serviceId, templateId, templateParams, publicKey);
+
+      if (response.status === 200 || response.text === 'OK') {
+        setStatus('success');
+        // Clear the form after successful submission
+        setFormData({ name: '', email: '', subject: '', message: '' });
+        setErrors({});
+      } else {
+        throw new Error(response.text || 'EmailJS rejected message delivery.');
+      }
+    } catch (err: unknown) {
+      console.error('EmailJS submission error:', err);
+      const text =
+        err instanceof Error
+          ? err.message
+          : 'Failed to deliver message. Please check your network or email credentials.';
+      setErrorMessage(text);
+      setStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <section
       id="contact"
       ref={sectionRef}
-      className="relative w-full text-gray-100 py-28 px-6 md:px-16 lg:px-24 flex flex-col items-center justify-center overflow-hidden border-t border-white/5"
+      className="relative w-full text-gray-100 py-28 px-4 sm:px-8 md:px-16 lg:px-24 flex flex-col items-center justify-center overflow-hidden border-t border-white/5"
     >
       {/* Section Title */}
       <div ref={titleRef} className="flex flex-col items-center text-center mb-14 z-10">
@@ -56,22 +169,21 @@ export const Contact: React.FC = () => {
           <img src="/assets/icon.svg" alt="" aria-hidden="true" className="w-6 h-6 object-contain" />
           Get In Touch
         </span>
-        <h2
-          className="text-5xl md:text-7xl font-black tracking-tight uppercase text-white"
-        >
+        <h2 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tight uppercase text-white">
           CONTACT.
         </h2>
         <div className="w-20 h-1.5 bg-[#a31515] mt-3 rounded-full" />
       </div>
 
-      {/* Card Form */}
+      {/* Card Form & Social Links */}
       <div className="relative w-full max-w-4xl z-10">
+        {/* WhatsApp Quick Action */}
         <a
           href={WHATSAPP_URL}
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`Chat with ${SITE.name} on WhatsApp`}
-          className="whatsapp-card glass glass-hover mb-8 flex items-center gap-4 rounded-3xl px-6 py-5 md:px-8 relative z-10"
+          className="whatsapp-card glass glass-hover mb-4 flex items-center gap-4 rounded-3xl px-6 py-5 md:px-8 relative z-10"
         >
           <span className="whatsapp-icon grid h-12 w-12 shrink-0 place-items-center rounded-2xl">
             <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor" aria-hidden="true">
@@ -82,8 +194,10 @@ export const Contact: React.FC = () => {
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">WhatsApp</span>
             <span className="text-base sm:text-lg md:text-xl font-extrabold text-gray-100">{SITE.phone}</span>
           </span>
-          <span className="whatsapp-cta ml-auto hidden shrink-0 text-xs font-bold uppercase tracking-wider sm:block">Chat now →</span>
+          <span className="whatsapp-cta ml-auto hidden shrink-0 text-xs font-bold uppercase tracking-wider sm:block">Chat now &rarr;</span>
         </a>
+
+        {/* Direct Phone Call */}
         <a
           href={`tel:+${SITE.phone}`}
           className="glass glass-hover mb-8 flex items-center gap-4 rounded-3xl px-6 py-5 md:px-8 relative z-10"
@@ -96,94 +210,159 @@ export const Contact: React.FC = () => {
             <span className="text-base sm:text-lg md:text-xl font-extrabold text-gray-100">{SITE.phone}</span>
           </span>
         </a>
+
         <div className="red-halo" style={{ inset: '-14% -10%' }} aria-hidden="true" />
-      <div
-        ref={cardRef}
-        className="glass glass-panel-card w-full p-8 md:p-14 rounded-3xl relative z-10"
-      >
-        {submitted ? (
-          <div className="py-12 flex flex-col items-center text-center">
-            <div className="glass-red w-16 h-16 text-white rounded-full flex items-center justify-center text-3xl font-black mb-4 animate-bounce">
-              ✓
-            </div>
-            <h3 className="text-3xl font-black uppercase tracking-tight text-white mb-3">
-              Message Dispatched!
-            </h3>
-            <p className="text-lg text-gray-300 font-medium max-w-md">
-              Thanks for reaching out! Your email app has been opened with the project details pre-filled.
-            </p>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-7">
-            {/* Direct Email Header Bar */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full glass-chip flex items-center justify-center text-red-500">
-                  <Mail className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[10px] uppercase font-mono tracking-wider text-gray-400 block">Direct Inquiries</span>
-                  <a href={`mailto:${SITE.email}`} className="text-sm md:text-base font-bold text-white hover:text-red-400 transition-colors">
-                    {SITE.email}
-                  </a>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs font-mono uppercase tracking-wider text-emerald-400">Open To New Projects</span>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="flex flex-col gap-2.5">
-                <label className="text-sm md:text-base font-bold uppercase tracking-wider text-gray-400">
-                  Your Name
+        {/* Glass Card Form */}
+        <div
+          ref={cardRef}
+          className="glass glass-panel-card w-full p-6 sm:p-10 md:p-14 rounded-3xl relative z-10"
+        >
+          {status === 'success' ? (
+            <div className="py-12 flex flex-col items-center text-center">
+              <div className="w-20 h-20 rounded-full bg-emerald-950/70 border border-emerald-500/60 flex items-center justify-center mb-6 shadow-[0_0_35px_rgba(16,185,129,0.4)] animate-bounce">
+                <CheckCircle2 className="w-10 h-10 text-emerald-400" />
+              </div>
+              <h3 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-tight text-white mb-3">
+                Message Dispatched!
+              </h3>
+              <p className="text-base sm:text-lg text-gray-300 font-medium max-w-lg mb-8 leading-relaxed">
+                Thank you for reaching out! Your message has been transmitted directly to my Gmail inbox at{' '}
+                <span className="text-white font-bold">{SITE.email}</span>. I will review it and get back to you shortly.
+              </p>
+              <button
+                type="button"
+                onClick={() => setStatus('idle')}
+                className="px-8 py-3 rounded-full glass-red text-white text-xs sm:text-sm font-bold uppercase tracking-wider transition-transform hover:scale-105 active:scale-95"
+              >
+                Send Another Message
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6 sm:gap-7">
+              {/* Direct Email Header Bar */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full glass-chip flex items-center justify-center text-red-500">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-mono tracking-wider text-gray-400 block">Direct Inquiries</span>
+                    <a href={`mailto:${SITE.email}`} className="text-sm md:text-base font-bold text-white hover:text-red-400 transition-colors">
+                      {SITE.email}
+                    </a>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-xs font-mono uppercase tracking-wider text-emerald-400">Open To New Projects</span>
+                </div>
+              </div>
+
+              {/* Error Banner */}
+              {status === 'error' && errorMessage && (
+                <div className="p-4 rounded-2xl bg-red-950/60 border border-red-600/60 flex items-start gap-3 shadow-[0_0_20px_rgba(220,38,38,0.25)]">
+                  <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                  <div className="text-sm text-red-200 leading-relaxed">
+                    <p className="font-bold text-white mb-0.5">Delivery Issue</p>
+                    <p>{errorMessage}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Name & Email */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs sm:text-sm md:text-base font-bold uppercase tracking-wider text-gray-400">
+                    Your Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    disabled={isSubmitting}
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    placeholder="Sudarson"
+                    className={`w-full px-5 sm:px-6 py-4 sm:py-5 glass-input rounded-2xl sm:rounded-3xl text-base sm:text-lg md:text-xl font-medium text-gray-100 placeholder:text-gray-500 focus:outline-none transition-all ${
+                      errors.name ? 'border-red-500 ring-1 ring-red-500' : ''
+                    } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  />
+                  {errors.name && <span className="text-xs text-red-400 font-medium px-2">{errors.name}</span>}
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs sm:text-sm md:text-base font-bold uppercase tracking-wider text-gray-400">
+                    Your Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    disabled={isSubmitting}
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder="your.email@example.com"
+                    className={`w-full px-5 sm:px-6 py-4 sm:py-5 glass-input rounded-2xl sm:rounded-3xl text-base sm:text-lg md:text-xl font-medium text-gray-100 placeholder:text-gray-500 focus:outline-none transition-all ${
+                      errors.email ? 'border-red-500 ring-1 ring-red-500' : ''
+                    } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  />
+                  {errors.email && <span className="text-xs text-red-400 font-medium px-2">{errors.email}</span>}
+                </div>
+              </div>
+
+              {/* Subject */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs sm:text-sm md:text-base font-bold uppercase tracking-wider text-gray-400">
+                  Subject <span className="text-red-500">*</span>
                 </label>
                 <input
-                  required
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                  placeholder="Your Name"
-                  className="w-full px-6 py-5 glass-input rounded-3xl text-lg md:text-xl font-medium text-gray-100 placeholder:text-gray-500 focus:outline-none transition-all"
+                  disabled={isSubmitting}
+                  value={formData.subject}
+                  onChange={(e) => handleInputChange('subject', e.target.value)}
+                  placeholder="e.g. AI Project Inquiry / Job Opportunity"
+                  className={`w-full px-5 sm:px-6 py-4 sm:py-5 glass-input rounded-2xl sm:rounded-3xl text-base sm:text-lg md:text-xl font-medium text-gray-100 placeholder:text-gray-500 focus:outline-none transition-all ${
+                    errors.subject ? 'border-red-500 ring-1 ring-red-500' : ''
+                  } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
                 />
+                {errors.subject && <span className="text-xs text-red-400 font-medium px-2">{errors.subject}</span>}
               </div>
 
-              <div className="flex flex-col gap-2.5">
-                <label className="text-sm md:text-base font-bold uppercase tracking-wider text-gray-400">
-                  Your Email
+              {/* Message */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs sm:text-sm md:text-base font-bold uppercase tracking-wider text-gray-400">
+                  Message &amp; Project Scope <span className="text-red-500">*</span>
                 </label>
-                <input
-                  required
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                  placeholder="your.email@example.com"
-                  className="w-full px-6 py-5 glass-input rounded-3xl text-lg md:text-xl font-medium text-gray-100 placeholder:text-gray-500 focus:outline-none transition-all"
+                <textarea
+                  rows={5}
+                  disabled={isSubmitting}
+                  value={formData.message}
+                  onChange={(e) => handleInputChange('message', e.target.value)}
+                  placeholder="Tell me about your idea, timeline, and what you need built..."
+                  className={`w-full px-5 sm:px-6 py-4 sm:py-5 glass-input rounded-2xl sm:rounded-3xl text-base sm:text-lg md:text-xl font-medium text-gray-100 placeholder:text-gray-500 focus:outline-none transition-all resize-none ${
+                    errors.message ? 'border-red-500 ring-1 ring-red-500' : ''
+                  } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
                 />
+                {errors.message && <span className="text-xs text-red-400 font-medium px-2">{errors.message}</span>}
               </div>
-            </div>
 
-            <div className="flex flex-col gap-2.5">
-              <label className="text-sm md:text-base font-bold uppercase tracking-wider text-gray-400">
-                Message &amp; Project Scope
-              </label>
-              <textarea
-                required
-                rows={6}
-                value={formData.message}
-                onChange={(e) => setFormData((prev) => ({ ...prev, message: e.target.value }))}
-                placeholder="Tell me about your idea, timeline and what you need built..."
-                className="w-full px-6 py-5 glass-input rounded-3xl text-lg md:text-xl font-medium text-gray-100 placeholder:text-gray-500 focus:outline-none transition-all resize-none"
-              />
-            </div>
-
-            <VenomButton type="submit" variant="primary" className="self-center mt-2">
-              Send Message
-            </VenomButton>
-          </form>
-        )}
-      </div>
+              {/* Submit Button */}
+              {isSubmitting ? (
+                <div className="self-center mt-2">
+                  <button
+                    type="button"
+                    disabled
+                    className="inline-flex items-center justify-center gap-3 px-8 py-3.5 rounded-full select-none cursor-not-allowed bg-red-950/80 border border-red-600/60 text-white font-bold uppercase tracking-wider text-xs sm:text-sm shadow-[0_0_25px_rgba(220,38,38,0.5)]"
+                  >
+                    <Loader2 className="w-4 h-4 animate-spin text-red-500" />
+                    <span>Dispatching Message...</span>
+                  </button>
+                </div>
+              ) : (
+                <VenomButton type="submit" variant="primary" className="self-center mt-2">
+                  Send Message
+                </VenomButton>
+              )}
+            </form>
+          )}
+        </div>
       </div>
     </section>
   );
